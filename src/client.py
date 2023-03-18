@@ -9,7 +9,7 @@ CLIENT_SECRET = getenv("CLIENT_SECRET")
 
 
 class Client:
-    def __init__(self, client_id: str, client_secret: str) -> None:
+    def __init__(self, client_id: str, client_secret: str):
         self.client_id = client_id
         self.client_secret = client_secret
 
@@ -41,7 +41,28 @@ class Client:
         self.expire_date = datetime.now() + \
             timedelta(seconds=response["expires_in"])
 
+    def get_new_token(self):
+        response = requests.post(
+            OAUTH2_URL + "/token",
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            data={
+                "client_id": self.client_id,
+                "refresh_token": self.refresh_token,
+                "grant_type": "refresh_token"
+            }
+        )
+        response = response.json()
+        
+        self.access_token = response["access_token"]
+        self.refresh_token = response["refresh_token"]
+        self.expire_date = datetime.now() + \
+            timedelta(seconds=response["expires_in"])
+
 
 if __name__ == '__main__':
     client = Client(CLIENT_ID, CLIENT_SECRET)
+    
+    client.get_new_token()
     print(client)
