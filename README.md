@@ -1,5 +1,5 @@
 # Hello-asso
 
-A python module to interact with Hello asso
+A rust module to interact with Hello Asso api
 
 WIP
