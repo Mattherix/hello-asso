@@ -2,6 +2,7 @@ use std::{time::SystemTime};
 
 use derivative::Derivative;
 use serde::Deserialize;
+use reqwest::header;
 
 const URL: &str = "https://api.helloasso.com/v5";
 const OAUTH2_TOKEN_URL: &str = "https://api.helloasso.com/oauth2/token";
@@ -48,6 +49,21 @@ struct HelloAssoBuilder {
     client: Option<reqwest::Client>
 }
 
+impl HelloAssoBuilder {
+    fn build(&mut self) -> HelloAsso {
+        HelloAsso {
+            client_id: self.client_id.clone().unwrap(),
+            client_secret: self.client_secret.clone().unwrap_or_default(),
+            access_token: self.access_token.clone().unwrap_or_default(),
+            refresh_token: self.refresh_token.clone().unwrap_or_default(),
+            token_outdated_after: self.token_outdated_after.unwrap_or(
+                SystemTime::UNIX_EPOCH
+            ),
+            client: self.client.clone().unwrap_or(reqwest::Client::new())
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::HelloAsso;
@@ -57,6 +73,6 @@ mod tests {
         HelloAsso::builder(
             "9a83d529ba764cf7ab04b2d377752d49".to_string(),
             "rca8GCvaE8pBo34gXvy7Rdb6k4bj2tUL".to_string()
-        );
+        ).build();
     }
 }
