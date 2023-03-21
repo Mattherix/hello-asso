@@ -78,7 +78,7 @@ struct HelloAssoBuilder {
     access_token: Option<String>,
     refresh_token: Option<String>,
     token_type: Option<String>,
-    expires_in: Option<i32>,
+    expires_in: Option<u32>,
     created_at: Option<SystemTime>,
     token_outdated_after: Option<SystemTime>,
     #[serde(skip)]
@@ -110,8 +110,11 @@ impl HelloAssoBuilder {
         self.access_token = token.access_token.clone();
         self.refresh_token = token.refresh_token;
         self.token_type = token.token_type;
-        self.expires_in = token.expires_in;
-        self.token_outdated_after = Some(SystemTime::now());
+        self.token_outdated_after = Some(
+            SystemTime::now() + Duration::from_secs(
+                token.expires_in.unwrap_or_default().into()
+            )
+        );
 
         Ok(self)
     }
