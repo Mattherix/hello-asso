@@ -1,6 +1,7 @@
 use std::{collections::HashMap, time::SystemTime};
 
 use derivative::Derivative;
+use reqwest::header;
 use serde::Deserialize;
 
 const URL: &str = "https://api.helloasso.com/v5";
@@ -78,6 +79,20 @@ impl HelloAssoBuilder {
         Ok(self)
     }
 
+    fn config_client(&mut self) -> Result<&mut Self, reqwest::Error> {
+        let mut headers = header::HeaderMap::new();
+        headers.insert(
+            header::AUTHORIZATION,
+            format!("Bearer {}", self.access_token.clone().unwrap()).parse().unwrap()
+        );
+        self.client = Some(reqwest::Client::builder()
+            .default_headers(headers)
+            .build()
+            .unwrap());
+        
+        Ok(self)
+    }
+
     fn build(&mut self) -> HelloAsso {
         HelloAsso {
             client_id: self.client_id.clone().unwrap(),
@@ -104,6 +119,8 @@ mod tests {
         )
          .get_token()
          .await
+         .unwrap()
+         .config_client()
          .unwrap()
          .build();
     }
