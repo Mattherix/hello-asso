@@ -1,8 +1,7 @@
-use std::{time::SystemTime};
+use std::{collections::HashMap, time::SystemTime};
 
 use derivative::Derivative;
 use serde::Deserialize;
-use reqwest::header;
 
 const URL: &str = "https://api.helloasso.com/v5";
 const OAUTH2_TOKEN_URL: &str = "https://api.helloasso.com/oauth2/token";
@@ -50,6 +49,35 @@ struct HelloAssoBuilder {
 }
 
 impl HelloAssoBuilder {
+    async fn get_token(&mut self) -> Result<&mut Self, reqwest::Error> {
+        // Prepare request body
+        let mut tokens = HashMap::new();
+        tokens.insert("client_id", self.client_id.as_ref().unwrap().clone());
+        tokens.insert("client_secret", self.client_secret.as_ref().unwrap().clone());
+        tokens.insert("grant_type", "client_credentials".to_string());
+
+        // Get access and refresh token
+        let answer_client = reqwest::Client::new();
+        let token = answer_client
+            .post(OAUTH2_TOKEN_URL)
+            .form(&tokens)
+            .send()
+            .await?
+            .json::<HelloAssoBuilder>()
+            .await?;
+        
+        // Fill data
+        self.access_token = token.access_token.clone();
+        self.refresh_token = token.refresh_token;
+        self.token_type = token.token_type;
+        self.expires_in = token.expires_in;
+        self.token_outdated_after = Some(
+            SystemTime::now()
+        );
+
+        Ok(self)
+    }
+
     fn build(&mut self) -> HelloAsso {
         HelloAsso {
             client_id: self.client_id.clone().unwrap(),
@@ -73,6 +101,10 @@ mod tests {
         HelloAsso::builder(
             "9a83d529ba764cf7ab04b2d377752d49".to_string(),
             "rca8GCvaE8pBo34gXvy7Rdb6k4bj2tUL".to_string()
-        ).build();
+        )
+         .get_token()
+         .await
+         .unwrap()
+         .build();
     }
 }
