@@ -9,6 +9,11 @@ repository = "https://github.com/Mattherix/hello-asso"
 readme = "README.md"
 keywords = ["helloasso", "nonprofit", "webapi", "api", "wrapper", "api-bindings"]
 categories = ["api-bindings"]
+exclude = [
+    ".github/*",
+    "env.example",
+    ".gitignore"
+]
 
 [dependencies]
 derivative = "2.2.0"
