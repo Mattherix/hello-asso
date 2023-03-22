@@ -174,12 +174,19 @@ impl HelloAssoBuilder {
 #[cfg(test)]
 mod tests {
     use crate::HelloAsso;
+    use dotenv::dotenv;
+    use std::env;
 
     #[tokio::test]
-    async fn build_client() {
+    async fn new_client() {
+        dotenv::dotenv();
+
+        let client_id = env::var("CLIENT_ID").unwrap();
+        let client_secret = env::var("CLIENT_SECRET").unwrap();
+        
         HelloAsso::new(
-            "9a83d529ba764cf7ab04b2d377752d49".to_string(),
-            "rca8GCvaE8pBo34gXvy7Rdb6k4bj2tUL".to_string(),
+            client_id,
+            client_secret,
         ).await
         .expect("Test failed");
     }
