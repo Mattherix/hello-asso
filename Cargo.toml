@@ -2,6 +2,7 @@
 name = "hello-asso"
 version = "0.1.0"
 edition = "2021"
+license = "EFL-2.0"
 
 [dependencies]
 derivative = "2.2.0"
