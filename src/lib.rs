@@ -29,6 +29,19 @@ struct RefreshToken {
 }
 
 impl HelloAsso {
+    async fn new(client_id: String, client_secret: String) -> Result<Self, reqwest::Error> {
+        let client = HelloAsso::builder(
+            client_id,
+            client_secret
+        )
+        .get_token()
+        .await?
+        .config_client()?
+        .build();
+        
+        Ok(client)
+    }
+
     fn builder(client_id: String, client_secret: String) -> HelloAssoBuilder {
         HelloAssoBuilder {
             client_id: client_id,
