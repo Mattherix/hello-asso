@@ -143,9 +143,12 @@ impl HelloAssoBuilder {
         let mut headers = header::HeaderMap::new();
         headers.insert(
             header::AUTHORIZATION,
-            format!("Bearer {}", self.access_token.clone().unwrap())
-                .parse()
-                .unwrap(),
+            format!(
+                "Bearer {}",
+                self.access_token.clone().expect("Can't get the access_token, use get_token")
+            )
+             .parse()
+             .expect("Can't parse formatted token into a HeaderName"),
         );
         self.client = Some(
             reqwest::Client::builder()
@@ -174,15 +177,10 @@ mod tests {
 
     #[tokio::test]
     async fn build_client() {
-        HelloAsso::builder(
+        HelloAsso::new(
             "9a83d529ba764cf7ab04b2d377752d49".to_string(),
             "rca8GCvaE8pBo34gXvy7Rdb6k4bj2tUL".to_string(),
-        )
-        .get_token()
-        .await
-        .unwrap()
-        .config_client()
-        .unwrap()
-        .build();
+        ).await
+        .expect("Test failed");
     }
 }
