@@ -7,6 +7,8 @@ description = "A package built to access helloasso api, https://api.helloasso.co
 homepage = "https://github.com/Mattherix/hello-asso"
 repository = "https://github.com/Mattherix/hello-asso"
 readme = "README.md"
+keywords = ["helloasso", "nonprofit", "webapi", "api", "wrapper", "api-bindings"]
+categories = ["api-bindings"]
 
 [dependencies]
 derivative = "2.2.0"
