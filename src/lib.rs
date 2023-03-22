@@ -20,11 +20,19 @@ struct HelloAsso {
     client: reqwest::Client,
 }
 
+#[derive(Debug, Deserialize)]
+struct RefreshToken {
+    access_token: String,
+    refresh_token: String,
+    token_type: String,
+    expires_in: u64,
+}
+
 impl HelloAsso {
     fn builder(client_id: String, client_secret: String) -> HelloAssoBuilder {
         HelloAssoBuilder {
-            client_id: Some(client_id),
-            client_secret: Some(client_secret),
+            client_id: client_id,
+            client_secret: client_secret,
             access_token: None,
             refresh_token: None,
             token_type: None,
@@ -41,15 +49,6 @@ impl HelloAsso {
         tokens.insert("client_id", self.client_id.clone());
         tokens.insert("refresh_token", self.refresh_token.clone());
         tokens.insert("grant_type", "refresh_token".to_string());
-
-        // Answer type
-        #[derive(Debug, Deserialize)]
-        struct RefreshToken {
-            access_token: String,
-            refresh_token: String,
-            token_type: String,
-            expires_in: u64,
-        }
 
         // Get access and refresh token
         let answer_client = reqwest::Client::new();
@@ -73,8 +72,8 @@ impl HelloAsso {
 
 #[derive(Debug, Deserialize)]
 struct HelloAssoBuilder {
-    pub client_id: Option<String>,
-    client_secret: Option<String>,
+    pub client_id: String,
+    client_secret: String,
     access_token: Option<String>,
     refresh_token: Option<String>,
     token_type: Option<String>,
@@ -85,14 +84,22 @@ struct HelloAssoBuilder {
     client: Option<reqwest::Client>,
 }
 
+#[derive(Debug, Deserialize)]
+struct AccessTokenResponse {
+    access_token: String,
+    refresh_token: String,
+    token_type: String,
+    expires_in: u64
+}
+
 impl HelloAssoBuilder {
     async fn get_token(&mut self) -> Result<&mut Self, reqwest::Error> {
         // Prepare request body
         let mut tokens = HashMap::new();
-        tokens.insert("client_id", self.client_id.as_ref().unwrap().clone());
+        tokens.insert("client_id", self.client_id.clone());
         tokens.insert(
             "client_secret",
-            self.client_secret.as_ref().unwrap().clone(),
+            self.client_secret.clone(),
         );
         tokens.insert("grant_type", "client_credentials".to_string());
 
@@ -103,16 +110,16 @@ impl HelloAssoBuilder {
             .form(&tokens)
             .send()
             .await?
-            .json::<HelloAssoBuilder>()
+            .json::<AccessTokenResponse>()
             .await?;
 
         // Fill data
-        self.access_token = token.access_token.clone();
-        self.refresh_token = token.refresh_token;
-        self.token_type = token.token_type;
+        self.access_token = Some(token.access_token);
+        self.refresh_token = Some(token.refresh_token);
+        self.token_type = Some(token.token_type);
         self.token_outdated_after = Some(
             SystemTime::now() + Duration::from_secs(
-                token.expires_in.unwrap_or_default().into()
+                token.expires_in
             )
         );
 
@@ -130,8 +137,7 @@ impl HelloAssoBuilder {
         self.client = Some(
             reqwest::Client::builder()
                 .default_headers(headers)
-                .build()
-                .unwrap(),
+                .build()?,
         );
 
         Ok(self)
@@ -139,8 +145,8 @@ impl HelloAssoBuilder {
 
     fn build(&mut self) -> HelloAsso {
         HelloAsso {
-            client_id: self.client_id.clone().unwrap(),
-            client_secret: self.client_secret.clone().unwrap_or_default(),
+            client_id: self.client_id.clone(),
+            client_secret: self.client_secret.clone(),
             access_token: self.access_token.clone().unwrap_or_default(),
             refresh_token: self.refresh_token.clone().unwrap_or_default(),
             token_outdated_after: self.token_outdated_after.unwrap_or(SystemTime::UNIX_EPOCH),
