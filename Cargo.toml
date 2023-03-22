@@ -1,5 +1,5 @@
 [package]
-name = "hello-asso"
+name = "helloasso"
 version = "0.1.0"
 edition = "2021"
 license = "EFL-2.0"
