@@ -3,6 +3,10 @@ name = "hello-asso"
 version = "0.1.0"
 edition = "2021"
 license = "EFL-2.0"
+description = "A package built to access helloasso api, https://api.helloasso.com/v5/swagger/ui/index"
+homepage = "https://github.com/Mattherix/hello-asso"
+repository = "https://github.com/Mattherix/hello-asso"
+readme = "README.md"
 
 [dependencies]
 derivative = "2.2.0"
