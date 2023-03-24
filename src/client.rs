@@ -4,7 +4,7 @@ use derivative::Derivative;
 use reqwest::{header, StatusCode};
 use serde::Deserialize;
 
-const URL: &str = "https://api.helloasso.com/v5";
+// const URL: &str = "https://api.helloasso.com/v5";
 const OAUTH2_TOKEN_URL: &str = "https://api.helloasso.com/oauth2/token";
 const OAUTH2_REFRESH_TOKEN_URL: &str = OAUTH2_TOKEN_URL;
 
@@ -36,12 +36,12 @@ pub struct HelloAsso {
 struct RefreshToken {
     access_token: String,
     refresh_token: String,
-    token_type: String,
+    /* token_type: String, */
     expires_in: u64,
 }
 
 impl HelloAsso {
-    async fn new(client_id: String, client_secret: String) -> Result<Self, Error> {
+    pub async fn new(client_id: String, client_secret: String) -> Result<Self, Error> {
         let client = HelloAsso::builder(
             client_id,
             client_secret
@@ -54,21 +54,19 @@ impl HelloAsso {
         Ok(client)
     }
 
-    fn builder(client_id: String, client_secret: String) -> HelloAssoBuilder {
+    pub fn builder(client_id: String, client_secret: String) -> HelloAssoBuilder {
         HelloAssoBuilder {
-            client_id: client_id,
-            client_secret: client_secret,
+            client_id,
+            client_secret,
             access_token: None,
             refresh_token: None,
             token_type: None,
-            expires_in: None,
-            created_at: None,
             token_outdated_after: None,
             client: None,
         }
     }
 
-    async fn refresh_token(&mut self) -> Result<&mut Self, reqwest::Error> {
+    pub async fn refresh_token(&mut self) -> Result<&mut Self, reqwest::Error> {
         // Prepare request body
         let mut tokens = HashMap::new();
         tokens.insert("client_id", self.client_id.clone());
@@ -96,14 +94,12 @@ impl HelloAsso {
 }
 
 #[derive(Debug, Deserialize)]
-struct HelloAssoBuilder {
+pub struct HelloAssoBuilder {
     pub client_id: String,
     client_secret: String,
     access_token: Option<String>,
     refresh_token: Option<String>,
     token_type: Option<String>,
-    expires_in: Option<u32>,
-    created_at: Option<SystemTime>,
     token_outdated_after: Option<SystemTime>,
     #[serde(skip)]
     client: Option<reqwest::Client>,
@@ -153,7 +149,7 @@ impl HelloAssoBuilder {
                         token.expires_in
                     )
                 );
-                return Ok(self);
+                Ok(self)
             },
             StatusCode::BAD_REQUEST => {
                 let error = response
@@ -161,10 +157,10 @@ impl HelloAssoBuilder {
                     .await
                     .expect("Can't deserialize AuthenticationError");
                 
-                return Err(Error::AuthErr(error));
+                Err(Error::AuthErr(error))
             },
             status => {
-                return panic!("Unknown status code while fetching the access_token, {}", status)
+                panic!("Unknown status code while fetching the access_token, {}", status)
             }
         }
     }
@@ -197,7 +193,7 @@ impl HelloAssoBuilder {
             access_token: self.access_token.clone().unwrap_or_default(),
             refresh_token: self.refresh_token.clone().unwrap_or_default(),
             token_outdated_after: self.token_outdated_after.unwrap_or(SystemTime::UNIX_EPOCH),
-            client: self.client.clone().unwrap_or(reqwest::Client::new()),
+            client: self.client.clone().unwrap_or_default(),
         }
     }
 }
@@ -206,11 +202,16 @@ impl HelloAssoBuilder {
 mod tests {
     use crate::{HelloAsso, Error, AuthenticationError};
     use dotenv::dotenv;
+    use log::{info, warn};
     use std::env;
 
     #[tokio::test]
     async fn new_client() {
-        dotenv::dotenv();
+        if let Err(err) = dotenv() {
+            warn!("Can't load .env file, {}", err);
+        } else {
+            info!(".env file loaded");
+        }
 
         let client_id = env::var("CLIENT_ID").unwrap();
         let client_secret = env::var("CLIENT_SECRET").unwrap();
@@ -224,7 +225,11 @@ mod tests {
 
     #[tokio::test]
     async fn invalid_client_id() {
-        dotenv::dotenv();
+        if let Err(err) = dotenv() {
+            warn!("Can't load .env file, {}", err);
+        } else {
+            info!(".env file loaded");
+        }
 
         let client_id = "abc".to_string();
         let client_secret = env::var("CLIENT_SECRET").unwrap();
@@ -234,7 +239,7 @@ mod tests {
             client_secret,
         ).await;
 
-        let auth_error = AuthenticationError {
+        let _auth_error = AuthenticationError {
             error: "unauthorized_client".to_string(),
             error_description: "Invalid client_id 'abc'".to_string()
         };
@@ -242,14 +247,18 @@ mod tests {
         assert!(matches!(
             client,
             Err(Error::AuthErr(
-                auth_error
+                _auth_error
             ))
         ))
     }
 
     #[tokio::test]
     async fn invalid_client_secret() {
-        dotenv::dotenv();
+        if let Err(err) = dotenv() {
+            warn!("Can't load .env file, {}", err);
+        } else {
+            info!(".env file loaded");
+        }
 
         let client_id = env::var("CLIENT_ID").unwrap();
         let client_secret = "abc".to_string();
@@ -261,7 +270,7 @@ mod tests {
 
         dbg!(&client);
 
-        let auth_error = AuthenticationError {
+        let _auth_error = AuthenticationError {
             error: "unauthorized_client".to_string(),
             error_description: "Invalid client_id 'abc'".to_string()
         };
@@ -269,8 +278,32 @@ mod tests {
         assert!(matches!(
             client,
             Err(Error::AuthErr(
-                auth_error
+                _auth_error
             ))
         ))
+    }
+
+    #[tokio::test]
+    async fn refresh_token() {
+        if let Err(err) = dotenv() {
+            warn!("Can't load .env file, {}", err);
+        } else {
+            info!(".env file loaded");
+        }
+
+        let client_id = env::var("CLIENT_ID").unwrap();
+        let client_secret = env::var("CLIENT_SECRET").unwrap();
+        
+        let mut client = HelloAsso::new(
+            client_id,
+            client_secret,
+        )
+        .await
+        .expect("Can't create the client");
+
+        client
+            .refresh_token()
+            .await
+            .expect("Could not refresh token");
     }
 }
