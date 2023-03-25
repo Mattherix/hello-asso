@@ -125,7 +125,7 @@ struct AccessTokenResponse {
 }
 
 impl HelloAssoBuilder {
-    async fn get_token(&mut self) -> Result<&mut Self, Error> {
+    pub async fn get_token(&mut self) -> Result<&mut Self, Error> {
         // Prepare request body
         let mut tokens = HashMap::new();
         tokens.insert("client_id", self.client_id.clone());
@@ -181,7 +181,7 @@ impl HelloAssoBuilder {
         }
     }
 
-    fn config_client(&mut self) -> Result<&mut Self, Error> {
+    pub fn config_client(&mut self) -> Result<&mut Self, Error> {
         let mut headers = header::HeaderMap::new();
         headers.insert(
             header::AUTHORIZATION,
@@ -205,7 +205,7 @@ impl HelloAssoBuilder {
         Ok(self)
     }
 
-    fn build(&mut self) -> HelloAsso {
+    pub fn build(&mut self) -> HelloAsso {
         HelloAsso {
             client_id: self.client_id.clone(),
             client_secret: self.client_secret.clone(),
