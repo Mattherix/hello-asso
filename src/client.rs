@@ -4,6 +4,7 @@ use std::{
 };
 
 use derivative::Derivative;
+use log::{info, error};
 use reqwest::{header, StatusCode};
 use serde::Deserialize;
 
@@ -51,6 +52,8 @@ impl HelloAsso {
             .config_client()?
             .build();
 
+        info!("New client created");
+
         Ok(client)
     }
 
@@ -79,15 +82,24 @@ impl HelloAsso {
             .post(OAUTH2_REFRESH_TOKEN_URL)
             .form(&tokens)
             .send()
-            .await?
+            .await
+            .map_err(|err| {
+                error!("Can't fetch refresh token from the api");
+                err
+            })?
             .json::<RefreshToken>()
-            .await?;
-
+            .await
+            .map_err(|err| {
+                error!("Can't deserialize refresh token response");
+                err
+            })?;
+        
         // Fill data
         self.access_token = token.access_token;
         self.refresh_token = token.refresh_token;
         self.token_outdated_after = SystemTime::now() + Duration::from_secs(token.expires_in);
 
+        info!("Access token refreshed");
         Ok(self)
     }
 }
@@ -127,7 +139,10 @@ impl HelloAssoBuilder {
             .form(&tokens)
             .send()
             .await
-            .map_err(Error::ReqwestErr)?;
+            .map_err(|err| {
+                error!("Can't fetch access token");
+                Error::ReqwestErr(err)
+            })?;
 
         match response.status() {
             StatusCode::OK => {
@@ -142,6 +157,9 @@ impl HelloAssoBuilder {
                 self.token_type = Some(token.token_type);
                 self.token_outdated_after =
                     Some(SystemTime::now() + Duration::from_secs(token.expires_in));
+                
+                info!("Access token fetched");
+
                 Ok(self)
             }
             StatusCode::BAD_REQUEST => {
@@ -149,6 +167,8 @@ impl HelloAssoBuilder {
                     .json::<AuthenticationError>()
                     .await
                     .expect("Can't deserialize AuthenticationError");
+
+                error!("An authentication error as occur");
 
                 Err(Error::AuthErr(error))
             }
@@ -181,6 +201,7 @@ impl HelloAssoBuilder {
                 .map_err(Error::ReqwestErr)?,
         );
 
+        info!("Client configured");
         Ok(self)
     }
 
