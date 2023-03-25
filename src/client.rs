@@ -1,3 +1,5 @@
+//! `client` the client and client builder
+
 use std::{
     collections::HashMap,
     time::{Duration, SystemTime},
@@ -45,6 +47,7 @@ struct RefreshToken {
 }
 
 impl HelloAsso {
+    /// Create a new client to interact with the api
     pub async fn new(client_id: String, client_secret: String) -> Result<Self, Error> {
         let client = HelloAsso::builder(client_id, client_secret)
             .get_token()
@@ -57,6 +60,30 @@ impl HelloAsso {
         Ok(client)
     }
 
+    /// Create a client builder that can be configure
+    /// 
+    /// The helloasso client can be created ether by calling the `new` method
+    /// or by using the builder pattern for a higher flexibility.
+    /// 
+    /// ```rust
+    /// # use helloasso::{HelloAsso, Error};
+    /// # use dotenv::dotenv;
+    /// # use std::env;
+    /// # 
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Error> {
+    /// # dotenv();
+    /// # let client_id = env::var("CLIENT_ID").unwrap();
+    /// # let client_secret = env::var("CLIENT_SECRET").unwrap();
+    /// # 
+    /// let client = HelloAsso::builder(client_id, client_secret)
+    ///     .get_token()
+    ///     .await?
+    ///     .config_client()?
+    ///     .build();
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn builder(client_id: String, client_secret: String) -> HelloAssoBuilder {
         HelloAssoBuilder {
             client_id,
@@ -69,6 +96,10 @@ impl HelloAsso {
         }
     }
 
+    /// Refresh the access_token of the client
+    /// 
+    /// By default access token are only valid for 30 min,
+    /// we can use this function to reset this timer 
     pub async fn refresh_token(&mut self) -> Result<&mut Self, reqwest::Error> {
         // Prepare request body
         let mut tokens = HashMap::new();
@@ -125,6 +156,7 @@ struct AccessTokenResponse {
 }
 
 impl HelloAssoBuilder {
+    /// Get the access token using the client id an secret
     pub async fn get_token(&mut self) -> Result<&mut Self, Error> {
         // Prepare request body
         let mut tokens = HashMap::new();
@@ -180,7 +212,8 @@ impl HelloAssoBuilder {
             }
         }
     }
-
+    
+    /// Create a new client using a previously set access_token, see `get_token`
     pub fn config_client(&mut self) -> Result<&mut Self, Error> {
         let mut headers = header::HeaderMap::new();
         headers.insert(
@@ -205,6 +238,7 @@ impl HelloAssoBuilder {
         Ok(self)
     }
 
+    /// Build the client
     pub fn build(&mut self) -> HelloAsso {
         HelloAsso {
             client_id: self.client_id.clone(),
@@ -224,7 +258,7 @@ mod tests {
     use log::{info, warn};
     use std::env;
 
-    fn get_env_variables() -> (String, String) {
+    pub fn get_env_variables() -> (String, String) {
         if let Err(err) = dotenv() {
             warn!("Can't load .env file, {}", err);
         } else {
