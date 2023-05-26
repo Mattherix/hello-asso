@@ -70,7 +70,7 @@ impl HelloAsso {
     /// # use dotenv::dotenv;
     /// # use std::env;
     /// # 
-    /// # #[tokio::main]
+    /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() -> Result<(), Error> {
     /// # dotenv();
     /// # let client_id = env::var("CLIENT_ID").unwrap();
