@@ -11,21 +11,11 @@ use log::{error, info};
 use reqwest::{header, StatusCode};
 use serde::Deserialize;
 
+use crate::error::{Error, AuthenticationError};
+
 // const URL: &str = "https://api.helloasso.com/v5";
 const OAUTH2_TOKEN_URL: &str = "https://api.helloasso.com/oauth2/token";
 const OAUTH2_REFRESH_TOKEN_URL: &str = OAUTH2_TOKEN_URL;
-
-#[derive(Debug)]
-pub enum Error {
-    ReqwestErr(reqwest::Error),
-    AuthErr(AuthenticationError),
-}
-
-#[derive(Debug, Deserialize)]
-pub struct AuthenticationError {
-    pub error: String,
-    pub error_description: String,
-}
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug, PartialEq)]
