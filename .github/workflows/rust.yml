@@ -1,11 +1,6 @@
 name: Rust
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, reopened, synchronize]
+on: push
 
 env:
   CARGO_TERM_COLOR: always

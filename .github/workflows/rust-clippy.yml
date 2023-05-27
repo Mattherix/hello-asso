@@ -9,12 +9,7 @@
 
 name: rust-clippy analyze
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, reopened, synchronize]
+on: push
 
 jobs:
   rust-clippy-analyze:
