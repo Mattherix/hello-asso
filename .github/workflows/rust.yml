@@ -22,3 +22,8 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: Rust Codecov
+      uses: maboesanman/rust-codecov@v0
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+
