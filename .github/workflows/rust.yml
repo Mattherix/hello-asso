@@ -19,7 +19,6 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     - name: Rust Codecov
-    - name: rust-tarpaulin
       uses: actions-rs/tarpaulin@v0.1.0
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
