@@ -11,7 +11,7 @@ use log::{error, info};
 use reqwest::{header, StatusCode};
 use serde::Deserialize;
 
-use crate::error::{Error, AuthenticationError};
+use crate::error::{AuthenticationError, Error};
 
 // const URL: &str = "https://api.helloasso.com/v5";
 const OAUTH2_TOKEN_URL: &str = "https://api.helloasso.com/oauth2/token";
@@ -186,7 +186,6 @@ impl HelloAssoBuilder {
                 self.token_outdated_after =
                     Some(SystemTime::now() + Duration::from_secs(token.expires_in));
 
-                #[cfg(feature = "log")]
                 info!("Access token fetched");
 
                 Ok(self)
