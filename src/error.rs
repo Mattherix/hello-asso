@@ -3,6 +3,7 @@
 use serde::Deserialize;
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
     ReqwestErr(reqwest::Error),
     AuthErr(AuthenticationError),
