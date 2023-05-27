@@ -18,10 +18,16 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
-    - name: Rust Codecov
-      uses: actions-rs/tarpaulin@v0.1.0
+    - name: Install stable toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - name: Run cargo-tarpaulin
+      uses: actions-rs/tarpaulin@v0.1
       with:
         version: '0.25.2'
+        args: '-- --test-threads 1'
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
 
