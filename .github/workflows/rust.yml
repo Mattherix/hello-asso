@@ -18,10 +18,15 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: Install stable toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        override: true
     - name: Run cargo-tarpaulin
       run: |
         cargo install cargo-tarpaulin
-        cargo tarpaulin --all-features --all --timeout 120 --out Xml
+        cargo +nightly tarpaulin --all-features --doc --timeout 120 --out Xml
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
 
