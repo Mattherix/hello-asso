@@ -6,7 +6,8 @@ use std::{
 };
 
 use derivative::Derivative;
-use log::{info, error};
+#[cfg(feture = "log")]
+use log::{error, info};
 use reqwest::{header, StatusCode};
 use serde::Deserialize;
 
@@ -55,27 +56,28 @@ impl HelloAsso {
             .config_client()?
             .build();
 
+        #[cfg(feture = "log")]
         info!("New client created");
 
         Ok(client)
     }
 
     /// Create a client builder that can be configure
-    /// 
+    ///
     /// The helloasso client can be created ether by calling the `new` method
     /// or by using the builder pattern for a higher flexibility.
-    /// 
+    ///
     /// ```rust
     /// # use helloasso::{HelloAsso, Error};
     /// # use dotenv::dotenv;
     /// # use std::env;
-    /// # 
+    /// #
     /// # #[tokio::main(flavor = "current_thread")]
     /// # async fn main() -> Result<(), Error> {
     /// # dotenv();
     /// # let client_id = env::var("CLIENT_ID").unwrap();
     /// # let client_secret = env::var("CLIENT_SECRET").unwrap();
-    /// # 
+    /// #
     /// let client = HelloAsso::builder(client_id, client_secret)
     ///     .get_token()
     ///     .await?
@@ -97,9 +99,9 @@ impl HelloAsso {
     }
 
     /// Refresh the access_token of the client
-    /// 
+    ///
     /// By default access token are only valid for 30 min,
-    /// we can use this function to reset this timer 
+    /// we can use this function to reset this timer
     pub async fn refresh_token(&mut self) -> Result<&mut Self, reqwest::Error> {
         // Prepare request body
         let mut tokens = HashMap::new();
@@ -115,21 +117,24 @@ impl HelloAsso {
             .send()
             .await
             .map_err(|err| {
+                #[cfg(feture = "log")]
                 error!("Can't fetch refresh token from the api");
                 err
             })?
             .json::<RefreshToken>()
             .await
             .map_err(|err| {
+                #[cfg(feture = "log")]
                 error!("Can't deserialize refresh token response");
                 err
             })?;
-        
+
         // Fill data
         self.access_token = token.access_token;
         self.refresh_token = token.refresh_token;
         self.token_outdated_after = SystemTime::now() + Duration::from_secs(token.expires_in);
 
+        #[cfg(feture = "log")]
         info!("Access token refreshed");
         Ok(self)
     }
@@ -172,6 +177,7 @@ impl HelloAssoBuilder {
             .send()
             .await
             .map_err(|err| {
+                #[cfg(feture = "log")]
                 error!("Can't fetch access token");
                 Error::ReqwestErr(err)
             })?;
@@ -189,7 +195,8 @@ impl HelloAssoBuilder {
                 self.token_type = Some(token.token_type);
                 self.token_outdated_after =
                     Some(SystemTime::now() + Duration::from_secs(token.expires_in));
-                
+
+                #[cfg(feture = "log")]
                 info!("Access token fetched");
 
                 Ok(self)
@@ -200,6 +207,7 @@ impl HelloAssoBuilder {
                     .await
                     .expect("Can't deserialize AuthenticationError");
 
+                #[cfg(feture = "log")]
                 error!("An authentication error as occur");
 
                 Err(Error::AuthErr(error))
@@ -212,7 +220,7 @@ impl HelloAssoBuilder {
             }
         }
     }
-    
+
     /// Create a new client using a previously set access_token, see `get_token`
     pub fn config_client(&mut self) -> Result<&mut Self, Error> {
         let mut headers = header::HeaderMap::new();
@@ -234,6 +242,7 @@ impl HelloAssoBuilder {
                 .map_err(Error::ReqwestErr)?,
         );
 
+        #[cfg(feture = "log")]
         info!("Client configured");
         Ok(self)
     }
@@ -255,13 +264,16 @@ impl HelloAssoBuilder {
 mod tests {
     use crate::{Error, HelloAsso};
     use dotenv::dotenv;
+    #[cfg(feture = "log")]
     use log::{info, warn};
     use std::env;
 
     pub fn get_env_variables() -> (String, String) {
         if let Err(err) = dotenv() {
+            #[cfg(feture = "log")]
             warn!("Can't load .env file, {}", err);
         } else {
+            #[cfg(feture = "log")]
             info!(".env file loaded");
         }
 
