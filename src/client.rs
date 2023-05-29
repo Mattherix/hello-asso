@@ -177,7 +177,10 @@ impl HelloAssoBuilder {
                 let token = response
                     .json::<AccessTokenResponse>()
                     .await
-                    .expect("Can't deserialize AccessTokenResponse");
+                    .map_err(|err| {
+                        error!("Can't decode access token");
+                        Error::ReqwestErr(err)
+                    })?;
 
                 // Fill data
                 self.access_token = Some(token.access_token);
@@ -194,7 +197,10 @@ impl HelloAssoBuilder {
                 let error = response
                     .json::<AuthenticationError>()
                     .await
-                    .expect("Can't deserialize AuthenticationError");
+                    .map_err(|err| {
+                        error!("Can't decode authentication error");
+                        Error::ReqwestErr(err)
+                    })?;
 
                 #[cfg(feature = "log")]
                 error!("An authentication error as occur");
@@ -202,7 +208,7 @@ impl HelloAssoBuilder {
                 Err(Error::AuthErr(error))
             }
             status => {
-                panic!(
+                unimplemented!(
                     "Unknown status code while fetching the access_token, {}",
                     status
                 )
