@@ -178,6 +178,7 @@ impl HelloAssoBuilder {
                     .json::<AccessTokenResponse>()
                     .await
                     .map_err(|err| {
+                        #[cfg(feture = "log")]
                         error!("Can't decode access token");
                         Error::DecodeErr(err)
                     })?;
@@ -198,6 +199,7 @@ impl HelloAssoBuilder {
                     .json::<AuthenticationError>()
                     .await
                     .map_err(|err| {
+                        #[cfg(feture = "log")]
                         error!("Can't decode authentication error");
                         Error::DecodeErr(err)
                     })?;
