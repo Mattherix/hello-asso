@@ -179,7 +179,7 @@ impl HelloAssoBuilder {
                     .await
                     .map_err(|err| {
                         error!("Can't decode access token");
-                        Error::ReqwestErr(err)
+                        Error::DecodeErr(err)
                     })?;
 
                 // Fill data
@@ -199,7 +199,7 @@ impl HelloAssoBuilder {
                     .await
                     .map_err(|err| {
                         error!("Can't decode authentication error");
-                        Error::ReqwestErr(err)
+                        Error::DecodeErr(err)
                     })?;
 
                 #[cfg(feature = "log")]

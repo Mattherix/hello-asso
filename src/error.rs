@@ -9,7 +9,6 @@ use serde::Deserialize;
 /// Errors that may occur when using the [client](crate::HelloAsso)
 ///
 /// It can ether be a [Reqwest Error](reqwest::Error) or an [Authentication Error](crate::AuthenticationError)
-// TODO: Decode error
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum Error {
@@ -17,6 +16,8 @@ pub enum Error {
     ReqwestErr(#[from] reqwest::Error),
     #[error("authentification failed")]
     AuthErr(AuthenticationError),
+    #[error("can't decode request")]
+    DecodeErr(reqwest::Error),
 }
 
 /// Authentication Error that may occur when trying to access the api
