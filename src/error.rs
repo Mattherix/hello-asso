@@ -37,3 +37,20 @@ impl Display for AuthenticationError {
         write!(f, "{}: {}", self.error, self.error_description)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::Error;
+    use std::error::Error as StdError;
+
+    fn error_trait_implemented<T>()
+    where
+        T: StdError,
+    {
+    }
+
+    #[test]
+    pub fn error_trait() {
+        error_trait_implemented::<Error>();
+    }
+}
