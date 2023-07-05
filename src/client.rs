@@ -11,7 +11,7 @@ use log::{error, info};
 use reqwest::{header, StatusCode};
 use serde::Deserialize;
 
-use crate::error::{AuthenticationError, Error};
+use crate::{error::Error, AuthenticationError};
 
 // const URL: &str = "https://api.helloasso.com/v5";
 const OAUTH2_TOKEN_URL: &str = "https://api.helloasso.com/oauth2/token";
@@ -203,7 +203,7 @@ impl HelloAssoBuilder {
                     })?;
 
                 #[cfg(feature = "log")]
-                error!("An authentication error as occur");
+                error!("An authentication error as occur, wrong client_id or credential");
 
                 Err(Error::AuthErr(error))
             }

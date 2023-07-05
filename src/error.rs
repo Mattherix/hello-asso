@@ -16,6 +16,8 @@ pub enum Error {
     ReqwestErr(#[from] reqwest::Error),
     #[error("authentification failed")]
     AuthErr(AuthenticationError),
+    #[error("your don't have the right permission")]
+    PermErr(AuthorizationError),
     #[error("can't decode request")]
     DecodeErr(reqwest::Error),
 }
@@ -39,6 +41,18 @@ impl Display for AuthenticationError {
     }
 }
 
+/// Authorization Error that may occur when trying to access the api
+#[derive(Error, Debug, Deserialize)]
+pub struct AuthorizationError {
+    pub message: String,
+}
+
+impl Display for AuthorizationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "authorization error: {}", self.message)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::Error;
@@ -55,3 +69,37 @@ mod tests {
         error_trait_implemented::<Error>();
     }
 }
+
+/*
+Note to myself:
+
+// TODO: Add test for PermErr, StatusCode::FORBIDDEN
+// TODO: Add test for PermErr, StatusCode::FORBIDDEN
+By implementing an endpoint and using a mocker (ie https://github.com/lipanski/mockito)
+
+Example code for AuthenticationError and AuthorizationError:
+
+StatusCode::UNAUTHORIZED => {
+    let error = response.json::<AuthorizationError>().await.map_err(|err| {
+        error!("Can't decode authentication error");
+        Error::DecodeErr(err)
+    })?;
+
+    error!("An authentication error as occur, wrong jwt");
+
+    Err(Error::AuthErr(error))
+}
+
+StatusCode::FORBIDDEN => {
+    let error = response.json::<AuthorizationError>().await.map_err(|err| {
+        error!("Can't decode authentication error");
+        Error::DecodeErr(err)
+    })?;
+
+    error!("Your JWT token hasn't the privileges or Roles for this action");
+
+    Err(Error::PermErr(error))
+}
+
+
+ */

@@ -6,4 +6,4 @@ mod client;
 mod error;
 
 pub use crate::client::HelloAsso;
-pub use crate::error::{AuthenticationError, Error};
+pub use crate::error::{AuthenticationError, AuthorizationError, Error};
