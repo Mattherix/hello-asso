@@ -2,6 +2,7 @@
 
 use std::{
     collections::HashMap,
+    str::FromStr,
     time::{Duration, SystemTime},
 };
 
@@ -10,18 +11,20 @@ use derivative::Derivative;
 use log::{error, info};
 use reqwest::{header, StatusCode};
 use serde::Deserialize;
+use url::Url;
 
 use crate::{error::Error, AuthenticationError};
 
-// const URL: &str = "https://api.helloasso.com/v5";
+const URL: &str = "https://api.helloasso.com/v5";
 const OAUTH2_TOKEN_URL: &str = "https://api.helloasso.com/oauth2/token";
-const OAUTH2_REFRESH_TOKEN_URL: &str = OAUTH2_TOKEN_URL;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug, PartialEq)]
 pub struct HelloAsso {
     pub client_id: String,
     client_secret: String,
+    pub url: Url,
+    token_url: Url,
     access_token: String,
     refresh_token: String,
     token_outdated_after: SystemTime,
@@ -80,6 +83,8 @@ impl HelloAsso {
         HelloAssoBuilder {
             client_id,
             client_secret,
+            url: Url::from_str(URL).expect("Config url is always valid"),
+            token_url: Url::from_str(OAUTH2_TOKEN_URL).expect("Config url is always valid"),
             access_token: None,
             refresh_token: None,
             token_type: None,
@@ -102,7 +107,7 @@ impl HelloAsso {
         // Get access and refresh token
         let answer_client = reqwest::Client::new();
         let token = answer_client
-            .post(OAUTH2_REFRESH_TOKEN_URL)
+            .post(self.token_url.as_ref())
             .form(&tokens)
             .send()
             .await
@@ -134,6 +139,8 @@ impl HelloAsso {
 pub struct HelloAssoBuilder {
     pub client_id: String,
     client_secret: String,
+    pub url: Url,
+    token_url: Url,
     access_token: Option<String>,
     refresh_token: Option<String>,
     token_type: Option<String>,
@@ -151,6 +158,16 @@ struct AccessTokenResponse {
 }
 
 impl HelloAssoBuilder {
+    /// Set the client url. You need to call this methode before get_token and config_client
+    pub fn set_url(&mut self, url: &str, token_url: &str) -> Result<&mut Self, url::ParseError> {
+        self.url = Url::from_str(url)?;
+        self.token_url = Url::from_str(token_url)?;
+
+        #[cfg(feature = "log")]
+        info!("Client urls set to {} {}", self.url, self.token_url);
+        Ok(self)
+    }
+
     /// Get the access token using the client id an secret
     pub async fn get_token(&mut self) -> Result<&mut Self, Error> {
         // Prepare request body
@@ -162,7 +179,7 @@ impl HelloAssoBuilder {
         // Get access and refresh token
         let answer_client = reqwest::Client::new();
         let response = answer_client
-            .post(OAUTH2_TOKEN_URL)
+            .post(self.token_url.as_ref())
             .form(&tokens)
             .send()
             .await
@@ -250,6 +267,8 @@ impl HelloAssoBuilder {
         HelloAsso {
             client_id: self.client_id.clone(),
             client_secret: self.client_secret.clone(),
+            url: self.url.clone(),
+            token_url: self.token_url.clone(),
             access_token: self.access_token.clone().unwrap_or_default(),
             refresh_token: self.refresh_token.clone().unwrap_or_default(),
             token_outdated_after: self.token_outdated_after.unwrap_or(SystemTime::UNIX_EPOCH),
