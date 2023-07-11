@@ -178,7 +178,7 @@ impl HelloAssoBuilder {
                     .json::<AccessTokenResponse>()
                     .await
                     .map_err(|err| {
-                        #[cfg(feture = "log")]
+                        #[cfg(feature = "log")]
                         error!("Can't decode access token");
                         Error::DecodeErr(err)
                     })?;
@@ -190,6 +190,7 @@ impl HelloAssoBuilder {
                 self.token_outdated_after =
                     Some(SystemTime::now() + Duration::from_secs(token.expires_in));
 
+                #[cfg(feature = "log")]
                 info!("Access token fetched");
 
                 Ok(self)
@@ -199,7 +200,7 @@ impl HelloAssoBuilder {
                     .json::<AuthenticationError>()
                     .await
                     .map_err(|err| {
-                        #[cfg(feture = "log")]
+                        #[cfg(feature = "log")]
                         error!("Can't decode authentication error");
                         Error::DecodeErr(err)
                     })?;
