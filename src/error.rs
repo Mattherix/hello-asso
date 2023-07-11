@@ -74,8 +74,8 @@ mod tests {
 Note to myself:
 
 // TODO: Add test for PermErr, StatusCode::FORBIDDEN
-// TODO: Add test for PermErr, StatusCode::FORBIDDEN
 By implementing an endpoint and using a mocker (ie https://github.com/lipanski/mockito)
+We need to implement an endpoint first because the token url can't return a 401 or a 403
 
 Example code for AuthenticationError and AuthorizationError:
 
