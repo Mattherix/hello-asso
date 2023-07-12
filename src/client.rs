@@ -159,9 +159,17 @@ struct AccessTokenResponse {
 
 impl HelloAssoBuilder {
     /// Set the client url. You need to call this methode before get_token and config_client
-    pub fn set_url(&mut self, url: &str, token_url: &str) -> Result<&mut Self, url::ParseError> {
-        self.url = Url::from_str(url)?;
-        self.token_url = Url::from_str(token_url)?;
+    pub fn set_url(&mut self, url: &str, token_url: &str) -> Result<&mut Self, Error> {
+        self.url = Url::from_str(url).map_err(|err| {
+            #[cfg(feature = "log")]
+            error!("Can't parse url {}", url);
+            Error::ParseUrlErr(err)
+        })?;
+        self.token_url = Url::from_str(token_url).map_err(|err| {
+            #[cfg(feature = "log")]
+            error!("Can't parse token_url {}", token_url);
+            Error::ParseUrlErr(err)
+        })?;
 
         #[cfg(feature = "log")]
         info!("Client urls set to {} {}", self.url, self.token_url);

@@ -20,6 +20,8 @@ pub enum Error {
     PermErr(AuthorizationError),
     #[error("can't decode request")]
     DecodeErr(reqwest::Error),
+    #[error("can't parse url")]
+    ParseUrlErr(url::ParseError),
 }
 
 /// Authentication Error that may occur when trying to access the api
