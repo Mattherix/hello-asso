@@ -15,8 +15,14 @@ use url::Url;
 
 use crate::{error::Error, AuthenticationError};
 
+#[cfg(not(test))]
 const URL: &str = "https://api.helloasso.com/v5";
+#[cfg(not(test))]
 const OAUTH2_TOKEN_URL: &str = "https://api.helloasso.com/oauth2/token";
+#[cfg(test)]
+const URL: &str = "https://api.helloasso-sandbox.com/v5";
+#[cfg(test)]
+const OAUTH2_TOKEN_URL: &str = "https://api.helloasso-sandbox.com/oauth2/token";
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug, PartialEq)]
@@ -72,6 +78,7 @@ impl HelloAsso {
     /// # let client_secret = env::var("CLIENT_SECRET").unwrap();
     /// #
     /// let client = HelloAsso::builder(client_id, client_secret)
+    /// #   .set_url("https://api.helloasso-sandbox.com/v5", "https://api.helloasso-sandbox.com/oauth2/token")?
     ///     .get_token()
     ///     .await?
     ///     .config_client()?
