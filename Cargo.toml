@@ -1,6 +1,6 @@
 [package]
 name = "helloasso"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 license = "EFL-2.0"
 description = "A package built to access helloasso api, https://api.helloasso.com/v5/swagger/ui/index"
