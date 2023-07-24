@@ -1,6 +1,9 @@
 name: Rust
 
-on: push
+on:
+  push:
+  release:
+    types: [created]
 
 env:
   CARGO_TERM_COLOR: always
@@ -9,9 +12,7 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
     - name: Build
@@ -29,4 +30,15 @@ jobs:
         cargo +nightly tarpaulin --all-features --doc --tests --timeout 120 --out Xml
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
+
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'release' }}
+    needs:
+      - build
+    steps:
+      - name: Login to crates.io
+        run: cargo login ${{ secrets.CRATES_IO_API_TOKEN }}
+      - name: Publish crates to crates.io
+        run: cargo publish --all-features
 
